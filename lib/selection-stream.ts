@@ -1,5 +1,5 @@
 export const MARKDOWN_STRUCTURE_SELECTION_STREAM_VERSION =
-  "lightspeed-markdown-v1";
+  "afterlight-markdown-v1";
 
 export type SelectionStreamVersion =
   typeof MARKDOWN_STRUCTURE_SELECTION_STREAM_VERSION;

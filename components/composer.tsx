@@ -49,7 +49,7 @@ export function Composer({
       <textarea
         ref={ref}
         data-composer={side ? "side" : "main"}
-        aria-label={side ? "Side chat message" : "Message lightspeed"}
+        aria-label={side ? "Side chat message" : "Message afterlight"}
         placeholder={side ? "Ask about this passage…" : "Ask anything…"}
         rows={1}
         value={value}
