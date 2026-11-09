@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useLayoutEffect, useRef, useState } from "react";
-import type { Message as MessageType, SideChat } from "@/lib/types";
+import type { Message as MessageType, Highlight } from "@/lib/types";
 import { restoreRangeFromOffsets } from "@/lib/selection";
 import { Markdown } from "./markdown";
 import { Icon } from "./icons";
@@ -23,7 +23,7 @@ export const Message = memo(function Message({
   selectable = true,
 }: {
   message: MessageType;
-  threads?: SideChat[];
+  threads?: Highlight[];
   activeThreadId?: string | null;
   onOpenThread?: (id: string) => void;
   onRetry?: () => void;
