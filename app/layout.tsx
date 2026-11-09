@@ -3,9 +3,9 @@ import "katex/dist/katex.min.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "lightspeed",
+  title: "afterlight",
   description:
-    "A little more room to think. Chat, highlight, and follow a thought.",
+    "Turn the questions you ask into flashcards that help you remember.",
 };
 
 export default function RootLayout({

@@ -11,7 +11,7 @@ export type Anchor = {
   selectedText: string;
   startOffset: number;
   endOffset: number;
-  streamVersion: "lightspeed-markdown-v1";
+  streamVersion: "afterlight-markdown-v1";
 };
 
 export type SideChat = {

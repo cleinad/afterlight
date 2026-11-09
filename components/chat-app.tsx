@@ -391,7 +391,7 @@ export function ChatApp() {
             }}
           >
             <Icon name="sun" size={24} />
-            <span>lightspeed</span>
+            <span>afterlight</span>
           </a>
           <button
             className="icon-button"

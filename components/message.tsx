@@ -93,7 +93,7 @@ export const Message = memo(function Message({
     <article
       className={`message message-${message.role}`}
       aria-label={
-        message.role === "user" ? "Your message" : "lightspeed response"
+        message.role === "user" ? "Your message" : "afterlight response"
       }
     >
       {message.role === "assistant" && (

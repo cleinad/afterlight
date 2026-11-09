@@ -1,14 +1,14 @@
-# lightspeed
+# afterlight
 
-lightspeed is a focused chatbot built with Next.js and plain CSS. Its defining interaction is simple: highlight part of an assistant response—prose, math, or code—and explore it in a separate side chat while keeping the original conversation in view.
+afterlight turns questions into durable learning. Ask about a topic, highlight a passage, explore it in a side chat, and turn what you want to remember into flashcards.
 
 ## Product direction
 
 This is a fresh implementation of Orchard's core chat experience. Orchard demonstrated strong highlighting and conversation branching, but its navigation, animations, and perceived inference speed motivated a smaller, faster rebuild. Preserve the quality of its highlighting while making the main chat feel immediate and reliable.
 
-The current priority is a chatbot you can talk to and highlight. Main chat and side chats are in scope. Conversation branching is deferred. Authentication, databases, durable chat history, and a separate backend service are outside the current scope; refreshing clears the page session.
+The current implementation is a chatbot you can talk to and highlight. Main chat and side chats are in scope. Conversation branching is deferred. Authentication, databases, durable chat history, and a separate backend service are outside the current scope; refreshing clears the page session. Flashcard generation is the product direction; it is not implemented yet.
 
-The visual reference is Claude Code's layout: a quiet navigation sidebar, a clear main reading area, a bottom composer, and a side panel for follow-ups. Use restrained typography and normal letter spacing. Avoid all-caps labels, text eyebrows, unnecessary explanatory copy, and decorative animations. Keep the name **lightspeed** lowercase.
+The visual reference is Claude Code's layout: a quiet navigation sidebar, a clear main reading area, a bottom composer, and a side panel for follow-ups. Use restrained typography and normal letter spacing. Avoid all-caps labels, text eyebrows, unnecessary explanatory copy, and decorative animations. Keep the name **afterlight** lowercase.
 
 ## Run locally
 
@@ -51,7 +51,7 @@ Next.js forwards chat and model-list requests to Ollama at `127.0.0.1:11434`; th
 | Ollama streaming and local forwarding | [lib/ollama.ts](lib/ollama.ts), [next.config.ts](next.config.ts) |
 | Layout and visual styling | [app/globals.css](app/globals.css) |
 
-Selection adapts Orchard's rendered-text index using the local `lightspeed-markdown-v1` stream. Anchors store half-open UTF-16 offsets rather than searching for matching text. Structural newlines and table tabs are preserved; hidden MathML and copy controls are excluded. Highlights use restored DOM ranges without rewriting Markdown or syntax tokens, and are measured again when layout changes.
+Selection adapts Orchard's rendered-text index using the local `afterlight-markdown-v1` stream. Anchors store half-open UTF-16 offsets rather than searching for matching text. Structural newlines and table tabs are preserved; hidden MathML and copy controls are excluded. Highlights use restored DOM ranges without rewriting Markdown or syntax tokens, and are measured again when layout changes.
 
 Keep changes small and readable. Protect selection correctness and request cancellation when improving performance. Agent-specific constraints are in [AGENTS.md](AGENTS.md).
 
