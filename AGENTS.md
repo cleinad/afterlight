@@ -7,7 +7,7 @@ Read [README.md](README.md) for the product brief, setup, implementation map, an
 - Build a fast, reliable main chat with excellent passage highlighting and independent side chats.
 - Use Next.js and plain CSS. Keep local Ollama as the current inference path and preserve its streamed responses.
 - Keep chat state in page memory. Do not add auth, a database, persistent browser storage, or a separate backend service unless requested.
-- Conversation branching is deferred. Do not add unrelated product surfaces or settings.
+- Recursive passage follow-ups are supported at arbitrary depth. Alternate-history editing, whole-transcript forks, merges, and branch-management tooling remain deferred. Do not add unrelated product surfaces or settings.
 - Orchard is a reference for selection behavior, not an architecture to reproduce. If needed, inspect the sibling `../../orchard` checkout without modifying it as part of afterlight work.
 
 ## UX and design
@@ -20,7 +20,7 @@ Read [README.md](README.md) for the product brief, setup, implementation map, an
 
 ## Selection invariants
 
-- Anchor to one completed main-chat assistant response using message ID, half-open UTF-16 offsets, and the selection-stream version.
+- Anchor to one completed assistant response in its owning conversation using message ID, half-open UTF-16 offsets, and the selection-stream version.
 - Offsets refer to canonical rendered text. Never relocate anchors by substring matching or slice raw Markdown with rendered offsets.
 - Preserve code newlines, Markdown block/list boundaries, and table cell/row/section boundaries. Exclude hidden KaTeX MathML and product controls.
 - Keep capture, restoration, and highlight geometry consistent. Renderer/plugin changes can alter offsets; inspect their effect and update focused regressions.
@@ -28,7 +28,7 @@ Read [README.md](README.md) for the product brief, setup, implementation map, an
 
 ## Chat and streaming invariants
 
-- Side-chat requests include the selected passage, main history through its source, and that side chat's history. Treat quoted passages as content, not instructions. Do not insert side replies into main history.
+- Side-chat requests include the selected passage, a frozen ancestor prefix through its source, and that conversation's local history. Treat quoted passages as content, not instructions. Do not insert child or sibling replies into another conversation's local history.
 - Scope callbacks to their chat/thread and request identity. Stop, Retry, navigation, and late chunks must not overwrite another conversation or duplicate turns.
 - Closing a side panel does not cancel its response; Stop explicitly cancels it.
 - Keep errors actionable and retries usable. Do not present incomplete streams as successful replies or substitute canned responses for real inference.
