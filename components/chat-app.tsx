@@ -13,6 +13,8 @@ import type { Anchor, Workspace } from "@/lib/types";
 import { ConversationPane, type ReadingState } from "./conversation-pane";
 import { useConversations } from "./use-conversations";
 import { Icon } from "./icons";
+import { SettingsDialog } from "./settings-dialog";
+import { defaultPersonalityPrompt } from "@/lib/ollama";
 
 type PendingSelection = Anchor & {
   conversationId: string;
@@ -20,8 +22,11 @@ type PendingSelection = Anchor & {
   y: number;
 };
 export function ChatApp() {
+  const [personalityPrompt, setPersonalityPrompt] = useState(defaultPersonalityPrompt);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsButton = useRef<HTMLButtonElement>(null);
   const { store, current, put, patch, root, send, busy, stop } =
-    useConversations();
+    useConversations(personalityPrompt);
   const [view, setView] = useState<Workspace>({ mainId: "", sideId: null });
   const viewRef = useRef(view);
   const [revealRevision, setRevealRevision] = useState(0);
@@ -209,6 +214,7 @@ export function ChatApp() {
       setSelection(pending);
     };
     const keydown = (e: KeyboardEvent) => {
+      if (document.querySelector("dialog[open]")) return;
       if (e.key === "Escape") {
         if (selectionRef.current) {
           setSelection(null);
@@ -249,13 +255,15 @@ export function ChatApp() {
       >
         Back
       </button>
-      <button
-        className="icon-button"
-        aria-label={sidebar ? "Collapse sidebar" : "Expand sidebar"}
-        onClick={() => setSidebar(!sidebar)}
-      >
-        <Icon name="panel" />
-      </button>
+      {!sidebar && (
+        <button
+          className="icon-button"
+          aria-label="Expand sidebar"
+          onClick={() => setSidebar(true)}
+        >
+          <Icon name="panel" />
+        </button>
+      )}
     </>
   );
   const crumb = (id: string, title: string) => (
@@ -461,25 +469,42 @@ export function ChatApp() {
           )}
         </nav>
         <div className="sidebar-footer">
-          <span className={`connection-dot ${connection}`} />
-          <span>
-            {connection === "ready"
-              ? "Running locally"
-              : connection === "checking"
-                ? "Connecting to Ollama…"
-                : "Ollama is offline"}
-          </span>
-          {connection === "error" && (
-            <button className="text-button" onClick={connect}>
-              Reconnect
-            </button>
-          )}
+          <button
+            ref={settingsButton}
+            className="settings-trigger"
+            aria-haspopup="dialog"
+            onClick={() => {
+              setSelection(null);
+              window.getSelection()?.removeAllRanges();
+              setSettingsOpen(true);
+            }}
+          >
+            <Icon name="settings" />
+            Settings
+          </button>
         </div>
       </aside>
       <div className="workspace">
         {main && pane(main.id, false)}
         {side && pane(side.id, true)}
       </div>
+      {settingsOpen && (
+        <SettingsDialog
+          prompt={personalityPrompt}
+          model={model}
+          models={models}
+          connection={connection}
+          onReconnect={connect}
+          onSave={(prompt, nextModel) => {
+            setPersonalityPrompt(prompt);
+            setModel(nextModel);
+          }}
+          onClose={() => {
+            setSettingsOpen(false);
+            requestAnimationFrame(() => settingsButton.current?.focus({ preventScroll: true }));
+          }}
+        />
+      )}
       {selection && (
         <button
           ref={selectionButton}

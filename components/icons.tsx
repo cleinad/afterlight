@@ -10,6 +10,12 @@ export function Icon({
   style?: CSSProperties;
 }) {
   const paths: Record<string, React.ReactNode> = {
+    settings: (
+      <>
+        <path d="m9 3-.6 2.3-2 .9-2.2-.6-2 3.4 1.6 1.7v2.6L2.2 15l2 3.4 2.2-.6 2 .9L9 21h4l.6-2.3 2-.9 2.2.6 2-3.4-1.6-1.7v-2.6L19.8 9l-2-3.4-2.2.6-2-.9L13 3Z" />
+        <circle cx="11" cy="12" r="3" />
+      </>
+    ),
     plus: <path d="M12 5v14M5 12h14" />,
     panel: (
       <>
