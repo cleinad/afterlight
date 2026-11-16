@@ -4,13 +4,14 @@ export type Message = {
   content: string;
   status?: "streaming" | "error" | "stopped";
   error?: string;
+  model?: string;
 };
 export type Anchor = {
   messageId: string;
   selectedText: string;
   startOffset: number;
   endOffset: number;
-  streamVersion: "afterlight-markdown-v1";
+  streamVersion: string;
 };
 export type ModelMessage = {
   role: "system" | "user" | "assistant";
@@ -19,6 +20,7 @@ export type ModelMessage = {
 export type Conversation = {
   id: string;
   title: string;
+  createdAt?: number;
   messages: Message[];
   draft: string;
   source: {
@@ -40,6 +42,7 @@ export function newChat(): Conversation {
   return {
     id: crypto.randomUUID(),
     title: "New chat",
+    createdAt: Date.now(),
     messages: [],
     draft: "",
     source: null,

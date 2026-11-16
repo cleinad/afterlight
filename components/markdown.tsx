@@ -8,6 +8,22 @@ import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import type { Root, Element } from "hast";
 import { Icon } from "./icons";
+import { desktop } from "@/lib/runtime";
+
+function ExternalLink({ href, children }: { href?: string; children?: React.ReactNode }) {
+  const [error, setError] = useState("");
+  const safe = href && /^https?:\/\//i.test(href) ? href : undefined;
+  return <><a href={safe} target="_blank" rel="noopener noreferrer" onClick={async (event) => {
+    if (!desktop()) return;
+    event.preventDefault();
+    if (!safe) return;
+    try {
+      const { openUrl } = await import("@tauri-apps/plugin-opener");
+      await openUrl(safe);
+      setError("");
+    } catch { setError("Could not open this link in your browser. Please retry."); }
+  }}>{children}</a>{error && <span role="alert" data-selection-exclude="true">{error}</span>}</>;
+}
 
 // The visible KaTeX leaves participate in selection; the parallel MathML tree doesn't.
 function selectionText() {
@@ -71,11 +87,9 @@ const rehypePlugins = [
 ] as NonNullable<React.ComponentProps<typeof ReactMarkdown>["rehypePlugins"]>;
 const components: React.ComponentProps<typeof ReactMarkdown>["components"] = {
   pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
-  a: ({ href, children }) => (
-    <a href={href} target="_blank" rel="noopener noreferrer">
-      {children}
-    </a>
-  ),
+  a: ({ href, children }) => <ExternalLink href={href}>{children}</ExternalLink>,
+  // Keep the image leaf (and canonical text) without loading model-supplied resources.
+  img: ({ alt }) => <img alt={alt || "Image omitted"} />,
   table: ({ children }) => (
     <div className="table-scroll">
       <table>{children}</table>

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-confirm-exit-without-saving"
+description = "Enables the confirm_exit_without_saving command without any pre-configured scope."
+commands.allow = ["confirm_exit_without_saving"]
+
+[[permission]]
+identifier = "deny-confirm-exit-without-saving"
+description = "Denies the confirm_exit_without_saving command without any pre-configured scope."
+commands.deny = ["confirm_exit_without_saving"]

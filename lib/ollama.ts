@@ -1,4 +1,16 @@
 import type { Message, ModelMessage } from "./types";
+import { desktop, nativeStream, type RunIdentity } from "./runtime";
+
+export async function listModels(): Promise<string[]> {
+  if (desktop()) {
+    const { invoke } = await import("@tauri-apps/api/core");
+    return invoke<string[]>("list_models");
+  }
+  const response = await fetch("/ollama/models", { signal: AbortSignal.timeout(6000) });
+  if (!response.ok) throw new Error("Couldn’t reach Ollama. Run ollama serve, then retry.");
+  const data = await response.json();
+  return data.models?.map((m: { name: string }) => m.name) || [];
+}
 
 export const systemPrompt =
   "Be a thoughtful, clear conversational assistant. Answer directly and naturally, with only as much detail as useful. Use Markdown where it helps. For math, use $...$ inline and $$...$$ on separate lines for display equations. Use fenced code blocks with a language. Avoid unnecessary headings or follow-up questions.";
@@ -14,7 +26,13 @@ export async function streamReply(
   messages: ModelMessage[],
   signal: AbortSignal,
   onText: (text: string) => void,
+  identity?: RunIdentity,
+  onCancelError?: (error: string) => void,
 ) {
+  if (desktop()) {
+    if (!identity) throw new Error("Missing desktop request identity.");
+    return nativeStream(model, messages, signal, onText, identity, onCancelError);
+  }
   const response = await fetch("/ollama/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

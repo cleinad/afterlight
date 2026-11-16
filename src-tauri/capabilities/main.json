@@ -1,0 +1,9 @@
+{
+  "identifier": "main",
+  "description": "Bundled main window only; no remote command access, SQL, files, or arbitrary HTTP.",
+  "windows": ["main"],
+  "permissions": [
+    "allow-list-models", "allow-start-reply", "allow-cancel-reply", "allow-load-workspace", "allow-save-workspace", "allow-finish-quit", "allow-export-backup", "allow-confirm-exit-without-saving", "core:event:allow-listen", "core:event:allow-unlisten",
+    { "identifier": "opener:allow-open-url", "allow": [{ "url": "https://*" }, { "url": "http://*" }] }
+  ]
+}

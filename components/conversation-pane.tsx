@@ -1,6 +1,7 @@
 "use client";
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import type { Conversation, Highlight } from "@/lib/types";
+import { DEFAULT_SELECTION_STREAM_VERSION } from "@/lib/selection-stream";
 import { restoreRangeFromOffsets } from "@/lib/selection";
 import { Message } from "./message";
 import { Composer } from "./composer";
@@ -186,6 +187,7 @@ export function ConversationPane({
         {c.source && (
           <div className="source-passage">
             <blockquote>{c.source.anchor.selectedText}</blockquote>
+            {c.source.anchor.streamVersion !== DEFAULT_SELECTION_STREAM_VERSION && <p role="status">This passage uses an unsupported selection version. Its text is retained, but its highlight cannot be restored.</p>}
             <button className="text-button" onClick={onSource}>
               Show in parent
             </button>

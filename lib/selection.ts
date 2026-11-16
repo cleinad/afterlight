@@ -429,7 +429,7 @@ export function buildSelectableTextIndex(root: Element): SelectableTextIndex {
 export function getOffsetsFromRange(
   root: Element,
   range: Range,
-  version: SelectionStreamVersion = DEFAULT_SELECTION_STREAM_VERSION,
+  version: string = DEFAULT_SELECTION_STREAM_VERSION,
 ): SelectionOffsets | null {
   getSelectionStreamVersion(version);
   const index = buildSelectableTextIndex(root);
@@ -455,9 +455,9 @@ export function restoreRangeFromOffsets(
   root: Element,
   startOffset: number,
   endOffset: number,
-  version: SelectionStreamVersion = DEFAULT_SELECTION_STREAM_VERSION,
+  version: string = DEFAULT_SELECTION_STREAM_VERSION,
 ) {
-  if (endOffset <= startOffset) {
+  if (version !== DEFAULT_SELECTION_STREAM_VERSION || endOffset <= startOffset) {
     return null;
   }
 

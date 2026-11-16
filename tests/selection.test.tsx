@@ -19,6 +19,16 @@ function render(markdown: string) {
 }
 
 describe("selection against the actual Markdown renderer", () => {
+  it("retains text but refuses to restore an unknown stream version", () => {
+    const root = render("Saved passage.");
+    expect(restoreRangeFromOffsets(root, 0, 5, "future-stream-v2")).toBeNull();
+    expect(buildSelectableTextIndex(root).text).toBe("Saved passage.");
+  });
+  it("blocks message image loads without changing the surrounding canonical text", () => {
+    const root = render("Before ![remote](https://example.com/tracking.png) after.");
+    expect(root.querySelector("img")?.hasAttribute("src")).toBe(false);
+    expect(buildSelectableTextIndex(root).text).toBe("Before  after.");
+  });
   it("keeps repeated phrases distinct through layout markup changes", () => {
     const root = render("Same phrase.\n\nSame **phrase**.");
     const p = root.querySelectorAll("p")[1];

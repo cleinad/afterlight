@@ -1000,3 +1000,6 @@ textarea:focus-visible {
     max-width: 100px;
   }
 }
+
+.save-error { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 12px; background: #fff1df; color: #702c0a; border-bottom: 1px solid #a75a20; }
+.save-error button { margin-left: 12px; }
