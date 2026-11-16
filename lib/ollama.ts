@@ -1,7 +1,10 @@
 import type { Message, ModelMessage } from "./types";
 
-export const systemPrompt =
-  "Be a thoughtful, clear conversational assistant. Answer directly and naturally, with only as much detail as useful. Use Markdown where it helps. For math, use $...$ inline and $$...$$ on separate lines for display equations. Use fenced code blocks with a language. Avoid unnecessary headings or follow-up questions.";
+export const baseFormattingPrompt =
+  "Use Markdown where it helps. For math, use $...$ inline and $$...$$ on separate lines for display equations. Use fenced code blocks with a language.";
+
+export const defaultPersonalityPrompt =
+  "Be a thoughtful, clear conversational assistant. Answer directly and naturally, with only as much detail as useful. Avoid unnecessary headings or follow-up questions.";
 
 export function toModelMessages(messages: Message[]): ModelMessage[] {
   return messages

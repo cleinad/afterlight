@@ -2,6 +2,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ChatApp } from "../components/chat-app";
+import { baseFormattingPrompt, defaultPersonalityPrompt } from "../lib/ollama";
 import { restoreRangeFromOffsets } from "../lib/selection";
 import type { ModelMessage } from "../lib/types";
 const requests = vi.hoisted(
@@ -88,6 +89,8 @@ async function follow(side = false, start = 0, end = 4) {
 }
 beforeEach(async () => {
   requests.length = 0;
+  HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  HTMLDialogElement.prototype.close = function () { this.open = false; };
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
   vi.stubGlobal(
     "ResizeObserver",
@@ -417,4 +420,63 @@ it("creates roots rather than reusing empty children and dismisses stale selecti
     ),
   );
   expect(pane(true)).toBeNull();
+});
+
+async function promptDraft(text: string) {
+  const input = document.querySelector<HTMLTextAreaElement>("#personality-prompt")!;
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(input, text);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+it("saves a replacement prompt for main, side and Retry requests without changing running requests", async () => {
+  await send("root question");
+  const original = requests[0].messages[0].content;
+  await click("Settings");
+  expect(document.querySelector<HTMLTextAreaElement>("#personality-prompt")!.value).toBe(defaultPersonalityPrompt);
+  expect(defaultPersonalityPrompt).not.toMatch(/Markdown|math|fenced code/);
+  await promptDraft("Custom instructions only.");
+  await click("Save changes");
+  expect(requests[0].messages[0].content).toBe(original);
+  await finish("AAAA passage");
+  await follow();
+  await send("side question", true);
+  expect(requests.at(-1)!.messages[0]).toEqual({ role: "system", content: baseFormattingPrompt + "\n\nCustom instructions only." });
+  await finish("side reply");
+  await click("Retry response", pane(true));
+  expect(requests.at(-1)!.messages[0].content).toBe(baseFormattingPrompt + "\n\nCustom instructions only.");
+  await finish("retried side reply");
+  await send("another root question");
+  expect(requests.at(-1)!.messages[0].content).toBe(baseFormattingPrompt + "\n\nCustom instructions only.");
+  await finish("root reply");
+});
+it("discards unsaved settings, supports restoring the default, and keeps base formatting when personality is blank", async () => {
+  await click("Settings");
+  const original = document.querySelector<HTMLTextAreaElement>("#personality-prompt")!.value;
+  await promptDraft("Discard me");
+  await click("Cancel");
+  await click("Settings");
+  expect(document.querySelector<HTMLTextAreaElement>("#personality-prompt")!.value).toBe(original);
+  await promptDraft("Discard on Escape");
+  await act(async () => document.querySelector("dialog")!.dispatchEvent(new Event("cancel", { cancelable: true })));
+  await click("Settings");
+  expect(document.querySelector<HTMLTextAreaElement>("#personality-prompt")!.value).toBe(original);
+  await promptDraft("");
+  await click("Save changes");
+  await send("no personality preferences");
+  expect(requests.at(-1)!.messages[0]).toEqual({ role: "system", content: baseFormattingPrompt });
+  await finish("reply");
+  await click("Settings");
+  await click("Restore default");
+  await click("Save changes");
+  await send("default instructions");
+  expect(requests.at(-1)!.messages[0]).toEqual({ role: "system", content: baseFormattingPrompt + "\n\n" + original });
+  await finish("reply");
+});
+it("keeps just one sidebar toggle visible and restores access when collapsed", async () => {
+  expect(document.querySelector(".header-left")!.textContent).not.toContain("Expand sidebar");
+  await click("Collapse sidebar");
+  expect(button("Expand sidebar")).toBeTruthy();
+  await click("Expand sidebar");
+  expect(button("Settings")).toBeTruthy();
 });

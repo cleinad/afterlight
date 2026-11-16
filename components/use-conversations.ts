@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { streamReply, systemPrompt, toModelMessages } from "@/lib/ollama";
+import { baseFormattingPrompt, defaultPersonalityPrompt, streamReply, toModelMessages } from "@/lib/ollama";
 import {
   newChat,
   type Conversation,
@@ -9,7 +9,7 @@ import {
 } from "@/lib/types";
 
 type Run = { controller: AbortController; messageId: string };
-export function useConversations() {
+export function useConversations(personalityPrompt = defaultPersonalityPrompt) {
   const [store, setStore] = useState<ConversationStore>({});
   const current = useRef(store);
   const runs = useRef(new Map<string, Run>());
@@ -74,7 +74,12 @@ export function useConversations() {
       messages: [...history, reply],
     });
     const context = [
-      { role: "system" as const, content: systemPrompt },
+      {
+        role: "system" as const,
+        content: personalityPrompt.trim()
+          ? baseFormattingPrompt + "\n\n" + personalityPrompt
+          : baseFormattingPrompt,
+      },
       ...c.inheritedContext,
       ...toModelMessages(history),
     ];
