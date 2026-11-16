@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "afterlight",
+  "version": "0.1.0",
+  "identifier": "app.afterlight.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://127.0.0.1:3001",
+    "beforeBuildCommand": "npm run desktop:assets",
+    "frontendDist": "../out"
+  },
+  "app": {
+    "windows": [{ "label": "main", "title": "afterlight", "width": 1280, "height": 800, "minWidth": 360, "minHeight": 480 }],
+    "security": {
+      "capabilities": ["main"],
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob:; font-src 'self' data:; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'"
+    }
+  },
+  "bundle": { "active": true, "targets": ["app"], "icon": ["icons/icon.png", "icons/icon.icns"] }
+}

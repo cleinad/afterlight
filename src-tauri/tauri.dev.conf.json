@@ -1,0 +1,4 @@
+{
+  "identifier": "app.afterlight.desktop.dev",
+  "app": { "security": { "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob:; font-src 'self' data:; connect-src ipc: http://ipc.localhost http://127.0.0.1:3001 ws://127.0.0.1:3001; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'" } }
+}

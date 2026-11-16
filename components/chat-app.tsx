@@ -13,6 +13,9 @@ import type { Anchor, Workspace } from "@/lib/types";
 import { ConversationPane, type ReadingState } from "./conversation-pane";
 import { useConversations } from "./use-conversations";
 import { Icon } from "./icons";
+import { createQuitHandler } from "@/lib/desktop-lifecycle";
+import { desktop } from "@/lib/runtime";
+import { listModels } from "@/lib/ollama";
 
 type PendingSelection = Anchor & {
   conversationId: string;
@@ -20,8 +23,9 @@ type PendingSelection = Anchor & {
   y: number;
 };
 export function ChatApp() {
-  const { store, current, put, patch, root, send, busy, stop } =
+  const { store, current, put, patch, root, send, busy, stop, ready, saveError, restored, flush, saveWorkspace } =
     useConversations();
+  const [desktopError, setDesktopError] = useState("");
   const [view, setView] = useState<Workspace>({ mainId: "", sideId: null });
   const viewRef = useRef(view);
   const [revealRevision, setRevealRevision] = useState(0);
@@ -39,6 +43,24 @@ export function ChatApp() {
   const [connection, setConnection] = useState<"checking" | "ready" | "error">(
     "checking",
   );
+  useEffect(() => {
+    if (!desktop()) return;
+    let disposed = false;
+    const listener = import("@tauri-apps/api/event").then(({ listen }) => listen("prepare-quit", createQuitHandler(flush, setDesktopError)));
+    void listener.then((unlisten) => { if (disposed) unlisten(); });
+    return () => { disposed = true; void listener.then((unlisten) => unlisten()); };
+  }, [flush]);
+  useEffect(() => {
+    if (!desktop()) return;
+    const listener = import("@tauri-apps/api/event").then(({ listen }) => listen("prepare-export", async () => {
+      try {
+        await flush();
+        const { invoke } = await import("@tauri-apps/api/core");
+        await invoke("export_backup");
+      } catch (error) { setDesktopError(`Backup could not be exported: ${String(error)}. Retry after resolving the error.`); }
+    }));
+    return () => { void listener.then((unlisten) => unlisten()); };
+  }, [flush]);
   function focusComposer(side: boolean) {
     requestAnimationFrame(() =>
       document
@@ -70,10 +92,14 @@ export function ChatApp() {
     [current],
   );
   useEffect(() => {
-    const id = root();
-    viewRef.current = { mainId: id, sideId: null };
+    if (!ready) return;
+    viewRef.current = restored?.workspace && validWorkspace(current.current, restored.workspace) ? restored.workspace : { mainId: root(), sideId: null };
+    if (restored) setModel(restored.model);
     setView(viewRef.current);
-  }, [root]);
+  }, [root, ready, restored, current]);
+  useEffect(() => {
+    if (ready && view.mainId) saveWorkspace(view, model);
+  }, [ready, view, model, saveWorkspace]);
   useEffect(() => {
     const query = window.matchMedia("(max-width: 899px)");
     const resize = () => {
@@ -88,16 +114,10 @@ export function ChatApp() {
   const connect = useCallback(async () => {
     setConnection("checking");
     try {
-      const response = await fetch("/ollama/models", {
-        signal: AbortSignal.timeout(6000),
-      });
-      if (!response.ok) throw new Error();
-      const data = await response.json();
-      const names: string[] =
-        data.models?.map((m: { name: string }) => m.name) || [];
+      const names = await listModels();
       if (!names.length) throw new Error();
       setModels(names);
-      setModel((c) => (names.includes(c) ? c : names[0]));
+      setModel((c) => desktop() || names.includes(c) ? c : names[0]);
       setConnection("ready");
     } catch {
       setConnection("error");
@@ -144,7 +164,7 @@ export function ChatApp() {
       true,
     );
   }
-  function createFollowup() {
+  async function createFollowup() {
     const pending = selectionRef.current;
     if (!pending) return;
     const active = viewRef.current;
@@ -160,6 +180,7 @@ export function ChatApp() {
       return;
     }
     put(child);
+    try { await flush(); } catch { return; }
     openChild(child.id);
   }
   const followupAction = useRef(createFollowup);
@@ -376,7 +397,7 @@ export function ChatApp() {
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
               >
-                {(models.length ? models : [model]).map((m) => (
+                {(models.length ? [...new Set([model, ...models])] : [model]).map((m) => (
                   <option key={m}>{m}</option>
                 ))}
               </select>
@@ -395,6 +416,8 @@ export function ChatApp() {
     <div
       className={`app ${sidebar ? "sidebar-open" : ""} ${side ? "thread-open" : ""}`}
     >
+      {(saveError || desktopError) && <div className="save-error" role="alert">{saveError || desktopError}{ready && <button onClick={() => void flush().catch(() => {})}>Retry saving</button>}</div>}
+      {!ready && !saveError && <div role="status">Opening saved chats…</div>}
       {sidebar && (
         <button
           className="sidebar-scrim"

@@ -6,7 +6,9 @@ afterlight turns questions into durable learning. Ask about a topic, highlight a
 
 This is a fresh implementation of Orchard's core chat experience. Orchard demonstrated strong highlighting and conversation branching, but its navigation, animations, and perceived inference speed motivated a smaller, faster rebuild. Preserve the quality of its highlighting while making the main chat feel immediate and reliable.
 
-The current implementation is a chatbot you can talk to and highlight. Recursive passage follow-ups are in scope: every conversation can open as main and its completed responses can create further follow-ups. Alternate-history editing, transcript forks, and merges are deferred. Authentication, databases, durable chat history, and a separate backend service are outside the current scope; refreshing clears the page session. Flashcard generation is the product direction; it is not implemented yet.
+The current implementation is a chatbot you can talk to and highlight. Recursive passage follow-ups are in scope: every conversation can open as main and its completed responses can create further follow-ups. Alternate-history editing, transcript forks, and merges are deferred. The browser app keeps state in page memory; refreshing clears its session. The desktop implementation adds local SQLite storage as described below. Authentication and a separate backend service remain outside scope. Flashcard generation is the product direction; it is not implemented yet.
+
+The desktop app, durable local storage, and image attachments are defined in [the desktop and image spec](IMAGE_DESKTOP_SPEC.md). The Tauri shell and native Ollama transport compile and have been exercised in the packaged macOS app. SQLite persistence/recovery/export are implemented with focused native tests; packaged storage acceptance remains outstanding. Image attachments are not implemented. See [desktop implementation status and setup](DESKTOP_IMPLEMENTATION.md).
 
 The visual reference is Claude Code's layout: a quiet navigation sidebar, a clear main reading area, a bottom composer, and a side panel for follow-ups. Use restrained typography and normal letter spacing. Avoid all-caps labels, text eyebrows, unnecessary explanatory copy, and decorative animations. Keep the name **afterlight** lowercase.
 
@@ -33,6 +35,8 @@ Open [localhost:3001](http://localhost:3001). The model menu lists your installe
 
 Next.js forwards chat and model-list requests to Ollama at `127.0.0.1:11434`; there are no custom API routes. The app binds to loopback. Responses stream, thinking is disabled in the request, and UI updates are batched at 32 ms. Actual generation speed depends on the model, hardware, and context length.
 
+For desktop development, install current stable Rust/Cargo and Xcode command-line tools, then run `npm run desktop:dev`. `npm run desktop:build` packages an unsigned macOS app using static assets, without a production Node server. `npm run desktop:acceptance` uses an isolated data identity. SQLite data lives in the platform application-data directory, outside the bundle. File → Export backup uses a consistent SQLite snapshot. Packaged restart/export verification is pending; see the implementation checkpoint before relying on this unfinished desktop build for important conversations.
+
 ## Using the app
 
 - Enter sends; Shift+Enter inserts a newline. Stop cancels a response; Retry replaces the last assistant response.
@@ -52,6 +56,8 @@ Next.js forwards chat and model-list requests to Ollama at `127.0.0.1:11434`; th
 | Markdown, code, math, and highlight geometry | [components/markdown.tsx](components/markdown.tsx), [components/message.tsx](components/message.tsx) |
 | Selection offsets and structural boundaries | [lib/selection.ts](lib/selection.ts), [lib/selection-stream.ts](lib/selection-stream.ts) |
 | Ollama streaming and local forwarding | [lib/ollama.ts](lib/ollama.ts), [next.config.ts](next.config.ts) |
+| Durable storage and recovery | [lib/persistence.ts](lib/persistence.ts), [src-tauri/src/storage.rs](src-tauri/src/storage.rs) |
+| Desktop runtime and native Ollama | [lib/runtime.ts](lib/runtime.ts), [src-tauri/src/ollama.rs](src-tauri/src/ollama.rs) |
 | Layout and visual styling | [app/globals.css](app/globals.css) |
 
 Selection adapts Orchard's rendered-text index using the local `afterlight-markdown-v1` stream. Anchors store half-open UTF-16 offsets rather than searching for matching text. Structural newlines and table tabs are preserved; hidden MathML and copy controls are excluded. Highlights use restored DOM ranges without rewriting Markdown or syntax tokens, and are measured again when layout changes.

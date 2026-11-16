@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-start-reply"
+description = "Enables the start_reply command without any pre-configured scope."
+commands.allow = ["start_reply"]
+
+[[permission]]
+identifier = "deny-start-reply"
+description = "Denies the start_reply command without any pre-configured scope."
+commands.deny = ["start_reply"]
